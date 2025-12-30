@@ -3,7 +3,7 @@ name = "werd-backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     "alembic>=1.16.5",
     "fastapi>=0.128.0",
