@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from uuid import UUID
 
@@ -17,6 +17,6 @@ class WordOut(BaseModel):
     approved: bool
     source: str
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
     
