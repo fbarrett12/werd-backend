@@ -160,8 +160,6 @@ def submit_answer(
     else:
         session.streak = 0
 
-    db.commit()
-
     correct_word = db.execute(select(Word).where(Word.id == attempt.word_id)).scalar_one()
 
     correct_word.times_seen += 1
@@ -184,6 +182,8 @@ def submit_answer(
         computed = min(computed, 3)
 
     correct_word.difficulty = max(1, min(10, computed))
+
+    db.commit()
 
     return AnswerOut(
         correct=correct,

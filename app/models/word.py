@@ -18,12 +18,12 @@ class Word(Base):
     definition: Mapped[str] = mapped_column(Text, nullable=False)
 
     part_of_speech: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    difficulty: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    difficulty: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1", default=1)
 
     approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="import")
 
-    times_seen: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    times_correct: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    times_incorrect: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    times_seen: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
+    times_correct: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
+    times_incorrect: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0", default=0)
