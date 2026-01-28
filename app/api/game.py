@@ -89,10 +89,10 @@ def create_question(
     # Build prompt + choices based on mode
     if session.mode == "def_to_word":
         prompt = correct.definition
-        choices = [{"word_id": w.id, "text": w.text} for w in words]
+        choices = [{"word_id": str(w.id), "text": w.text} for w in words]
     else:  # word_to_def
         prompt = correct.text
-        choices = [{"word_id": w.id, "definition": w.definition} for w in words]
+        choices = [{"word_id": str(w.id), "definition": w.definition} for w in words]
 
     attempt = Attempt(
         session_id=session.id,
@@ -134,7 +134,18 @@ def submit_answer(
         raise HTTPException(status_code=404, detail="Attempt not found for this session")
 
     # Validate selected option is one of the stored choices
-    choice_ids = {UUID(c["word_id"]) for c in attempt.choices}
+    try:
+        choice_ids = {
+            UUID(str(c["word_id"]))
+            for c in attempt.choices
+            if c.get("word_id") is not None
+        }
+    except (ValueError, TypeError, KeyError):
+        raise HTTPException(
+            status_code=500,
+            detail="Corrupt attempt choices",
+        )
+    
     if payload.selected_word_id not in choice_ids:
         raise HTTPException(status_code=400, detail="Selected choice was not in the presented options")
 
@@ -152,6 +163,27 @@ def submit_answer(
     db.commit()
 
     correct_word = db.execute(select(Word).where(Word.id == attempt.word_id)).scalar_one()
+
+    correct_word.times_seen += 1
+    if correct:
+        correct_word.times_correct += 1
+    else:
+        correct_word.times_incorrect += 1
+
+    # Difficulty formula (simple + stable)
+    # miss_rate in [0,1]. Map to [1..10] and add a little weight for volume.
+    miss_rate = correct_word.times_incorrect / max(1, correct_word.times_seen)
+
+    # Example mapping:
+    # - 0% miss => 1
+    # - 100% miss => 10
+    computed = 1 + round(miss_rate * 9)
+
+    # Require a minimum sample size before it can climb
+    if correct_word.times_seen < 10:
+        computed = min(computed, 3)
+
+    correct_word.difficulty = max(1, min(10, computed))
 
     return AnswerOut(
         correct=correct,

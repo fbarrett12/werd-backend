@@ -9,7 +9,11 @@ app = FastAPI(title="What's the Werd API", version="0.1.0")
 app.include_router(words_router)
 app.include_router(game_router)
 
-origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+origins = [
+    o.strip().strip('"').strip("'")
+    for o in settings.cors_origins.split(",")
+    if o.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +21,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=600,
 )
 
 @app.get("/health")

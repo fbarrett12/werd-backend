@@ -23,9 +23,12 @@ def create_word(payload: WordCreate, db: Session = Depends(get_db)):
         text_normalized=normalized,
         definition=payload.definition.strip(),
         part_of_speech=payload.part_of_speech,
-        difficulty=payload.difficulty,
+        difficulty=1,
         approved=True,
         source="user",
+        times_seen=0,
+        times_correct=0,
+        times_incorrect=0,
     )
     db.add(word)
     db.commit()
